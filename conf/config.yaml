@@ -1,0 +1,7 @@
+lr: 5e-4
+epochs: 100
+n_rand: 1024
+n_samples: 64
+near: 2.0
+far: 6.0
+directory: "tiny_nerf_data.npz"
