@@ -4,4 +4,5 @@ n_rand: 1024
 n_samples: 64
 near: 2.0
 far: 6.0
+dataset: "tless"
 directory: "tiny_nerf_data.npz"

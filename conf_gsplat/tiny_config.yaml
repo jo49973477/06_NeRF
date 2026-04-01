@@ -1,0 +1,10 @@
+lr: 0.001
+max_steps: 5000
+camera_width: 100
+camera_height: 100
+ssim_coefficient: 0.2
+num_points: 10000
+dataset: "tiny"
+directory: "tiny_nerf_data.npz"
+name: "Run_02_TinyNerf_Test"
+save_directory: "3dgs_checkpoint"

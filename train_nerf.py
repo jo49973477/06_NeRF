@@ -16,7 +16,7 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from omegaconf import DictConfig, OmegaConf
 import hydra
 
-from dataset import TinyNerfDataset
+from dataset import TinyNerfDataset, TLessDataset
 from config import MainConfig
 from net import NeRF_MLP
 from embedding import PositionalEncoder
@@ -93,12 +93,14 @@ class NeRFLightning(pl.LightningModule): # 이름부터 NeRF로 바꾸자!
 if __name__ == "__main__":
     # setting the configuration parameters
     hydra.initialize(version_base=None, config_path="conf")
-    cfg = hydra.compose(config_name="config")
+    cfg = hydra.compose(config_name="tless_config")
     raw_config = OmegaConf.to_container(cfg, resolve=True)
     main_cfg = MainConfig(**raw_config)
 
 
-    trainset = TinyNerfDataset(main_cfg.directory)
+    trainset = TinyNerfDataset(main_cfg.directory) if main_cfg.dataset == "tiny" else TLessDataset(main_cfg.directory)
+    
+    
     trainloader = DataLoader(trainset, 
                              batch_size=1, 
                              shuffle=True, 
@@ -112,8 +114,8 @@ if __name__ == "__main__":
 
     # 3. WandB 로거 연결
     wandb_logger = WandbLogger(
-        project="Tiny_NeRF",
-        name="take005"
+        project="TLess_NeRF",
+        name="take001"
     )
 
     # 4. 트레이너(Trainer) 소환! ⚡️

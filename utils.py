@@ -94,3 +94,35 @@ def volume_rendering(raw_outputs, z_vals, rays_d):
     pixel_color = torch.sum(weights[..., None] * rgb, dim=-2) # [N_rays, 3]
 
     return pixel_color, weights
+
+def get_projmat_from_K(K, W, H, znear=0.01, zfar=100.0):
+    """
+    T-Less 데이터셋처럼 3x3 Intrinsic Matrix(K)가 이미 있을 때,
+    이걸 3DGS/gsplat이 좋아하는 4x4 Projection Matrix로 변환하는 상남자의 함수!!
+    """
+    # 1. 3x3 K 행렬에서 알맹이(초점 거리와 주점)만 쏙쏙 빼온다!
+    fx = K[0, 0]
+    fy = K[1, 1]
+    cx = K[0, 2]
+    cy = K[1, 2]
+
+    # 2. 4x4 그래픽스용 빈 깡통 텐서(행렬) 준비!
+    P = np.zeros((4, 4), dtype=np.float32)
+
+    # 3. [X, Y축 스케일링] 픽셀 단위 초점 거리를 화면 비율(-1 ~ 1)로 압축!
+    P[0, 0] = 2.0 * fx / W
+    P[1, 1] = 2.0 * fy / H
+
+    # 4. [주점 오프셋] 렌즈의 중심(cx, cy)이 정중앙(W/2, H/2)이 아닐 경우의 찌그러짐 보정!!
+    # (OpenCV의 좌상단 0,0 좌표계를 그래픽스의 정중앙 0,0 좌표계로 밀어버림)
+    P[0, 2] = (2.0 * cx / W) - 1.0
+    P[1, 2] = (2.0 * cy / H) - 1.0 
+    
+    # 5. [Z축 클리핑] 원근감과 렌더링 한계선(Near/Far) 설정 (Vulkan/DirectX/3DGS 근본 공식)
+    P[2, 2] = zfar / (zfar - znear)
+    P[2, 3] = -(zfar * znear) / (zfar - znear)
+    
+    # 6. Z값을 w로 복사해서 원근 투영(Perspective Divide)을 발동시키는 핵심 트리거!
+    P[3, 2] = 1.0
+
+    return P
