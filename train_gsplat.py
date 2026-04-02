@@ -57,7 +57,7 @@ class GaussianSplatting:
         }
         
         lrs = {
-            "means": 1.6e-6,    
+            "means": 1.6e-4,    
             "scales": 1e-3,    
             "quats": 1e-3,      
             "opacities": 1e-2,  
@@ -67,9 +67,6 @@ class GaussianSplatting:
         
         # .items()로 정상 순회하도록 보장
         self.optimizers = {k: optim.Adam([v], lr=lrs[k], eps=1e-15) for k, v in self.param_dict.items()}
-        
-        self.scheduler = optim.lr_scheduler.ExponentialLR(self.optimizers["means"], 
-                                                          gamma=  0.01 ** (1/ self.max_steps))
         
         self.lambda_ssim = cfg.ssim_coefficient
         self.dataloader = dataloader
@@ -200,8 +197,6 @@ class GaussianSplatting:
             width=self.camera_width,
             height=self.camera_height,
             packed=True,
-            near_plane = 0.5,
-            far_plane=10e10
         )
         
         self.strategy.step_pre_backward(
@@ -240,8 +235,6 @@ class GaussianSplatting:
         for opt in self.optimizers.values():
             opt.step()
             opt.zero_grad()
-        
-        self.scheduler.step()
         
         return pred_img[0], loss.item()
         
