@@ -1,10 +1,10 @@
 lr: 0.001
 max_steps: 15000          # 🚨 [변경] T-LESS는 더 오래 구워야 해!
-camera_width: 400         # 🚨 [변경 필수] 데이터셋 해상도에 맞춰야 함!
-camera_height: 400        # 🚨 [변경 필수] 보통 400x400으로 많이 씀!
+camera_width: 720
+camera_height: 540
 ssim_coefficient: 0.2
 num_points: 30000         # 🚨 [변경] 초기 점 개수 펌핑!
 dataset: "tless"
-directory: "/home/yeongyoo/03_Dataset/01_t-less_v2/train_kinect"  # 캡틴의 실제 폴더 경로로 변경!
+directory: "/home/yeongyoo/03_Dataset/01_t-less_v2/test_kinect"  # 캡틴의 실제 폴더 경로로 변경!
 name: "Run_01_TLess_Test"
 save_directory: "3dgs_checkpoint_tless"

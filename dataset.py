@@ -11,6 +11,7 @@ import cv2
 
 class TinyNerfDataset(Dataset):
     def __init__(self, directory, detail = False):
+        self.directory = directory
         data = np.load(directory)
         self.images = torch.from_numpy(data['images']).float()
         self.poses = torch.from_numpy(data['poses']).float()
@@ -44,6 +45,18 @@ class TinyNerfDataset(Dataset):
             return self.images[idx].numpy() * 255, self.poses[idx], self.get_K()
         else:
             return self.images[idx].numpy() * 255, self.poses[idx], self.focal
+    
+    
+    def initialise_images_for_colmap(self, path):
+        os.makedirs(path, exist_ok=True)
+        
+        for i in range(len(self)):
+            image_raw = self.get(i)[0]
+            img = cv2.cvtColor(image_raw, cv2.COLOR_BGR2RGB)
+            cv2.imwrite(os.path.join(path, f"{i:03d}.png"), img.astype(np.uint8))
+            
+        return path
+            
 
 
 
@@ -51,11 +64,11 @@ class TLessDataset(Dataset):
     def __init__(self, directory, number = 1, detail = False):
         number_folder = f"{number:02d}"
         
-        image_dir = os.path.join(directory, number_folder, "rgb")
+        self.image_dir = os.path.join(directory, number_folder, "rgb")
         gt_dir = os.path.join(directory, number_folder, "gt.yml")
         info_dir = os.path.join(directory, number_folder, "info.yml")
         
-        self.image_paths = list(Path(image_dir).glob("*.png"))
+        self.image_paths = list(Path(self.image_dir).glob("*.png"))
         self.image_paths.sort()
         
         with open(info_dir, "r") as f:
@@ -67,7 +80,11 @@ class TLessDataset(Dataset):
         
         self.detail = detail
         
-        
+    
+    def initialise_images_for_colmap(self, path):
+        return self.image_dir
+    
+    
     def __len__(self):
         return len(self.image_paths)
     
@@ -100,22 +117,22 @@ class TLessDataset(Dataset):
     
     def __getitem__(self, index):
         raw_img, poses, focal = self.get(index)
-        img = self.transform(raw_img), poses
         
         if self.detail:
-            return img, poses, focal
+            return raw_img, poses, focal
         else:
-            return img, poses
+            return raw_img, poses
         
         
         
 def tless_test():
     
-    tinynerf = TLessDataset("/home/yeongyoo/03_Dataset/01_t-less_v2/test_kinect/", number = 5)
+    tinynerf = TLessDataset("/home/yeongyoo/03_Dataset/01_t-less_v2/test_kinect/", number = 5, detail= True)
 
     image, poses, focal = tinynerf.get(5)
-    img_raw, _ = tinynerf[5]
+    img_raw, poses, focal = tinynerf[5]
     cv2.imwrite("showing.png", image)
+    print(img_raw.shape)
     print("poses:: ", poses)
     print("focal:: ", focal)
     
@@ -123,8 +140,9 @@ def tless_test():
 def tinynerf_test():
     tinynerf = TinyNerfDataset("tiny_nerf_data.npz", detail= True)
 
-    image, poses, focal = tinynerf.get(5)
-    img_raw, _ = tinynerf[5]
+    image, poses, focal = tinynerf.get(10)
+    img_raw, _, _ = tinynerf[10]
+    print(img_raw.shape)
     cv2.imwrite("showing.png", image)
     print("poses:: ", poses)
     print("focal:: ", focal)

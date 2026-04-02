@@ -16,3 +16,7 @@ Tiny_NeRF/
 
 #dataset
 *.npz
+*.png
+*.pt
+*.ply
+colmap_output/
