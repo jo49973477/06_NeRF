@@ -65,6 +65,8 @@ class TLessDataset(Dataset):
         number_folder = f"{number:02d}"
         
         self.image_dir = os.path.join(directory, number_folder, "rgb")
+        self.depth_dir = os.path.join(directory, number_folder, "depth")
+        
         gt_dir = os.path.join(directory, number_folder, "gt.yml")
         info_dir = os.path.join(directory, number_folder, "info.yml")
         
@@ -97,7 +99,7 @@ class TLessDataset(Dataset):
         poses = np.zeros((4, 4), dtype= np.float64)
         
         cam_R_w2c = np.array(self.info[idx]["cam_R_w2c"]).reshape(3, 3)
-        cam_t_w2c = np.array(self.info[idx]["cam_t_w2c"])
+        cam_t_w2c = np.array(self.info[idx]["cam_t_w2c"]) / 1000.0
         
         poses[:3, :3] = cam_R_w2c
         poses[:3, 3] = cam_t_w2c
@@ -148,4 +150,4 @@ def tinynerf_test():
     print("focal:: ", focal)
 
 if __name__ == "__main__":
-    tless_test()
+    tinynerf_test()

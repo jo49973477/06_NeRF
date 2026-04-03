@@ -71,7 +71,9 @@ class GaussianSplatting:
         self.lambda_ssim = cfg.ssim_coefficient
         self.dataloader = dataloader
         
-        self.strategy = DefaultStrategy() if strategy is None else strategy if strategy is None else strategy
+        self.strategy = DefaultStrategy(prune_scale3d=5.0, 
+                                        prune_scale2d=1.5, 
+                                        grow_grad2d =0.0001 ) if strategy is None else strategy if strategy is None else strategy
         
         self.strategy_state = self.strategy.initialize_state()
         
@@ -196,6 +198,8 @@ class GaussianSplatting:
             Ks=focal_matrix,
             width=self.camera_width,
             height=self.camera_height,
+            near_plane=0.01, # (주의: 스케일을 미터로 바꿨다면 0.01 정도로 낮추는 게 좋습니다)
+            far_plane=10e10,
             packed=True,
         )
         
